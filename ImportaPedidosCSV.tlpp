@@ -48,7 +48,7 @@ User Function ImportaPedidosCSV()
 	oDialog:Activate()
 Return
 
-Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosCSV
+	Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosCSV
 	Local aExec := {}
 	Local aPedidoExec := {}
 	Local aProcessed := {}
@@ -162,18 +162,20 @@ Return .T.
 
 
 
-Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV
+	Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV
+	Local nTam := 0
+
 	If Empty(cProduto)
 		Return .F.
 	EndIf
 
 	DbSelectArea("SB1")
 	("SB1")->(DbSetOrder(1))
-	Local nTam := TamSX3("B1_COD")[1]
+	nTam := TamSX3("B1_COD")[1]
 Return ("SB1")->(DbSeek(PadR(cProduto, nTam)))
 
 
-Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
+	Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
 	Local aHeader := ImportaPedidosCSV():LoadCSV(cHeaderFile)
 	Local aItens  := ImportaPedidosCSV():LoadCSV(cItensFile)
 	Local aPedidos := {}
@@ -197,7 +199,7 @@ Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical cl
 	ImportaPedidosCSV():ExecutaPedidos(aPedidos)
 Return .T.
 
-Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
+	Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
 	Local oFile := FWFileReader():New(cFile)
 	Local aCols := {}
 	Local aRet := {}
@@ -231,7 +233,7 @@ Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
 	oFile:Close()
 Return aRet
 
-Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
+	Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
 	Local aPedidos := {}
 	Local aIndex := {}
 
@@ -244,12 +246,14 @@ Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
 	Next
 Return aPedidos
 
-Static Method ValidaCliente(cCliente as String) as Logical class ImportaPedidosCSV
+	Static Method ValidaCliente(cCliente as String) as Logical class ImportaPedidosCSV
+	Local nTam := 0
+
 	If Empty(cCliente)
 		Return .F.
 	EndIf
 
 	DbSelectArea("SA1")
 	("SA1")->(DbSetOrder(3))
-	Local nTam := TamSX3("A1_COD")[1]
+	nTam := TamSX3("A1_COD")[1]
 Return ("SA1")->(DbSeek(PadR(cCliente, nTam)))

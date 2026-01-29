@@ -196,11 +196,13 @@ Return ("SB1")->(DbSeek(PadR(cProduto, nTam)))
 	ImportaPedidosCSV():ExecutaPedidos(aPedidos)
 Return .T.
 
-	Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
+Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
 	Local oFile := FWFileReader():New(cFile)
 	Local aCols := {}
 	Local aRet := {}
-	Local cLine
+	Local cLine := ""
+	Local aVals := {}
+	Local rec := {}
 
 	If !oFile:Open()
 		ConOut("Erro ao abrir arquivo: " + cFile)
@@ -217,8 +219,8 @@ Return .T.
 
 	While oFile:HasLine()
 		cLine := oFile:GetLine()
-		Local aVals := StrTokArr(DeCodeUTF8(cLine), ";")
-		Local rec := {}
+		aVals := StrTokArr(DeCodeUTF8(cLine), ";")
+		rec := {}
 		For i := 1 To Min(Len(aCols), Len(aVals))
 			rec[AllTrim(aCols[i])] := AllTrim(aVals[i])
 		Next

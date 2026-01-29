@@ -18,11 +18,11 @@ User Function ImportaPedidosCSV()
 	Local cItens := ""
 
 	Local bImport := {| |
-		If Empty(cHeader) .Or. Empty(cItens)
-			FWAlertInfo("Informe os dois arquivos (header e itens).", "Dados incompletos")
-			Return
-		EndIf
-		FwMsgRun(,{|oSay| ImportaPedidosCSV():Importa(cHeader, cItens) }, 'Importando... Aguarde', "")
+	If Empty(cHeader) .Or. Empty(cItens)
+		FWAlertInfo("Informe os dois arquivos (header e itens).", "Dados incompletos")
+		Return
+	EndIf
+	FwMsgRun(,{|oSay| ImportaPedidosCSV():Importa(cHeader, cItens) }, 'Importando... Aguarde', "")
 	}
 
 	Local bSair := {|| Iif(MsgYesNo('Deseja sair?', 'Sair'), oDialog:DeActivate(), NIL) }
@@ -109,8 +109,43 @@ Return
 	EndIf
 
 	For k := 1 To Len(aExec)
-		ConOut("Preparando criação do pedido externo: " + aExec[k]["pedido_externo"])
+		ConOut("Preparando criação do pedido externo: " + aExec[k]["pedido_externo"]) 
 		ConOut(" Itens válidos: " + Str(Len(aExec[k]["itens"])))
+
+		Local aDat := {}
+		Local aHeaderFields := {}
+		Local header := aExec[k]["header"]
+
+		AAdd(aHeaderFields, {"C5_FILIAL", IIf(Header["Filial"]==NIL, "01", header["Filial"]) })
+		AAdd(aHeaderFields, {"C5_EMISSAO", header["Emissao"]})
+		AAdd(aHeaderFields, {"C5_CLIENTE", header["Cliente"]})
+		AAdd(aHeaderFields, {"C5_LOJA", header["Loja"]})
+		AAdd(aHeaderFields, {"C5_CONDPAG", header["CondPag"]})
+		AAdd(aHeaderFields, {"C5_TABELA", header["TabelaPreco"]})
+		AAdd(aHeaderFields, {"C5_VENDEDOR", header["Vendedor"]})
+		AAdd(aHeaderFields, {"C5_OBS", header["Obs"]})
+		AAdd(aHeaderFields, {"C5_ORIGEM", header["Origem"]})
+
+		AAdd(aDat, {"SC5", aHeaderFields})
+
+		Local aItems := aExec[k]["itens"]
+		Local nItemNo := 1
+		For m := 1 To Len(aItems)
+			Local aItemFields := {}
+			Local it := aItems[m]
+			AAdd(aItemFields, {"C6_ITEM", PadL(Str(nItemNo),3,'0')})
+			AAdd(aItemFields, {"C6_PRODUTO", it["Produto"]})
+			AAdd(aItemFields, {"C6_QTD", it["Quantidade"]})
+			AAdd(aItemFields, {"C6_PRECO", it["PrecoUnit"]})
+			AAdd(aItemFields, {"C6_DESC_PERC", it["DescontoPerc"]})
+			AAdd(aDat, {"SC6", aItemFields})
+			nItemNo++
+		Next
+
+		Local nNOPC := 3
+		Local cLog := ""
+		MSEXECAUTO( {|x,y| cLog += y + CRLF }, aDat, nNOPC )
+		ConOut("Resultado MSEXECAUTO:\n" + cLog)
 	Next
 
 	ConOut("Preparação finalizada. Implementar montagem do aDat e chamada MSEXECAUTO.")

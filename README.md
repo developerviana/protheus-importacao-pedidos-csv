@@ -33,6 +33,7 @@
   1. Implementar montagem completa do `aDat` e chamada de `MSEXECAUTO`.
   2. Adicionar verificação persistente de duplicidade em `SC5`.
   3. Criar rotinas opcionais para carregar `clientes_seed.csv` e `produtos_seed.csv`.
+
 # ImportaPedidosCSV - Instruções
 
 - Arquivos CSV (separador `;`, UTF-8):

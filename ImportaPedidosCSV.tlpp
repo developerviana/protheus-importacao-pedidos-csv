@@ -48,7 +48,7 @@ User Function ImportaPedidosCSV()
 	oDialog:Activate()
 Return
 
-	Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosCSV
+Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosCSV
 	Local aExec := {}
 	Local aPedidoExec := {}
 	Local aProcessed := {}
@@ -158,8 +158,8 @@ Return
 		ConOut("Resultado MSEXECAUTO:\n" + cLog)
 	Next
 
-	ConOut("Preparação finalizada. Implementar montagem do aDat e chamada MSEXECAUTO.")
 Return .T.
+
 
 
 Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV

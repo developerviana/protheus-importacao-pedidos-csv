@@ -13,7 +13,7 @@ User Function ImportaPedidosCSV()
     Return .T.
 Return
 
-Static Method ExecutaPedidos(aPedidos) Class ImportaPedidosCSV
+Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosCSV
     Local aExec := {}
     Local aPedidoExec := {}
     Local aProcessed := {}

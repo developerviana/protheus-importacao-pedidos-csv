@@ -13,6 +13,75 @@ User Function ImportaPedidosCSV()
     Return .T.
 Return
 
+Static Method ExecutaPedidos(aPedidos) Class ImportaPedidosCSV
+    Local aExec := {}
+    Local aPedidoExec := {}
+    Local aProcessed := {}
+
+    For i := 1 To Len(aPedidos)
+        Local cPed := aPedidos[i]:pedido
+
+        If aProcessed[cPed] != NIL
+            ConOut("Pedido duplicado no lote, ignorando: " + cPed)
+            Continue
+        EndIf
+        aProcessed[cPed] := .T.
+
+        Local header := aPedidos[i]:header
+        If header == NIL .Or. Len(header) == 0
+            ConOut("Header não encontrado para pedido: " + cPed + " - ignorando")
+            Continue
+        EndIf
+
+        Local cCliente := header["Cliente"]
+        If !ImportaPedidosCSV():ValidaCliente(cCliente)
+            ConOut("Cliente inválido para pedido " + cPed + ": " + cCliente)
+            Continue
+        EndIf
+
+        Local aItens := aPedidos[i]:itens
+        Local aItensValidos := {}
+        For j := 1 To Len(aItens)
+            Local cProd := aItens[j]["Produto"]
+            Local nQt   := Val(AllTrim(aItens[j]["Quantidade"]))
+            Local nPreco:= Val(AllTrim(aItens[j]["PrecoUnit"]))
+
+            If !ImportaPedidosCSV():ValidaProduto(cProd)
+                ConOut("Produto inexistente para pedido " + cPed + " item " + aItens[j]["Item"] + ": " + cProd)
+                Continue
+            EndIf
+
+            If nQt <= 0 .Or. nPreco <= 0
+                ConOut("Item inválido para pedido " + cPed + " item " + aItens[j]["Item"]) 
+                Continue
+            EndIf
+
+            AAdd(aItensValidos, aItens[j])
+        Next
+
+        If Len(aItensValidos) == 0
+            ConOut("Nenhum item válido para pedido: " + cPed + " - não será criado.")
+            Continue
+        EndIf
+
+        aPedidoExec := { pedido_externo := cPed, header := header, itens := aItensValidos }
+        AAdd(aExec, aPedidoExec)
+    Next
+
+    If Len(aExec) == 0
+        ConOut("Nenhum pedido preparado para execução.")
+        Return .F.
+    EndIf
+
+    For k := 1 To Len(aExec)
+        ConOut("Preparando criação do pedido externo: " + aExec[k]["pedido_externo"]) 
+        ConOut(" Itens válidos: " + Str(Len(aExec[k]["itens"])))
+    Next
+
+    ConOut("Preparação finalizada. Implementar montagem do aDat e chamada MSEXECAUTO.")
+Return .T.
+
+
 Static Method ValidaProduto(cProduto) Class ImportaPedidosCSV
     If Empty(cProduto)
         Return .F.

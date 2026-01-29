@@ -13,6 +13,18 @@ User Function ImportaPedidosCSV()
     Return .T.
 Return
 
+Static Method ValidaProduto(cProduto) Class ImportaPedidosCSV
+    If Empty(cProduto)
+        Return .F.
+    EndIf
+
+    DbSelectArea("SB1")
+    ("SB1")->(DbSetOrder(1))
+    Local nTam := TamSX3("B1_COD")[1]
+    Return ("SB1")->(DbSeek(PadR(cProduto, nTam)))
+Return
+
+
 Static Method Importa(cHeaderFile, cItensFile) Class ImportaPedidosCSV
     Local aHeader := ImportaPedidosCSV():LoadCSV(cHeaderFile)
     Local aItens  := ImportaPedidosCSV():LoadCSV(cItensFile)

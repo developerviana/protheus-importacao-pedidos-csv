@@ -3,37 +3,13 @@
 #INCLUDE "TbiConn.Ch"
 
 /*
-	Classe: ImportaPedidosCSV
+	importaPedidosCSV
 	
 	Objetivo:
 	Importar pedidos de venda (SC5/SC6) a partir de arquivos CSV, com validações
 	de integridade referencial e execução automática via MSEXECAUTO.
 	
-	Responsabilidades:
-	- Ler e processar arquivos CSV (cabeçalho e itens)
-	- Validar integridade de dados contra tabelas Protheus (SA1, SB1)
-	- Validar regras de negócio (quantidade, preço, origem)
-	- Evitar duplicação de pedidos no lote
-	- Montar estrutura de dados para executor automático
-	- Executar criação de pedidos via MSEXECAUTO com tratamento de logs
-	
-	Métodos:
-	- Importa(cHeaderFile, cItensFile): Orquestra o fluxo completo
-	- LoadCSV(cFile): Lê e mapeia dados do arquivo CSV
-	- AgrupaItens(aItens): Agrupa itens por pedido externo
-	- ValidaCliente(cCliente): Verifica existência em SA1
-	- ValidaProduto(cProduto): Verifica existência em SB1
-	- ValidaOrigem(cOrigem): Valida origem (CRM, Ecommerce, Protheus)
-	- ExecutaPedidos(aPedidos): Executa criação de pedidos
-	
-	Uso:
-	- User Function ImportaPedidosCSV() : Abre interface gráfica
-	- ImportaPedidosCSV():Importa(cHeader, cItens) : Importação direta
-	
-	Pré-requisitos:
-	- Framework Protheus 12+
-	- Arquivos CSV com separador ';' e encoding UTF-8
-	- Ajustar mapeamento de campos SC5/SC6 conforme dicionário local
+    Autor:Victor Lucas
 */
 
 Class ImportaPedidosCSV
@@ -83,7 +59,7 @@ User Function ImportaPedidosCSV()
 	oDialog:Activate()
 Return
 
-Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosCSV
+	Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosCSV
 	Local aExec := {}
 	Local aPedidoExec := {}
 	Local aProcessed := {}
@@ -199,7 +175,7 @@ Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosC
 	Next
 Return .T.
 
-Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV
+	Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV
 	Local nTam := 0
 
 	If Empty(cProduto)
@@ -211,7 +187,7 @@ Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosC
 	nTam := TamSX3("B1_COD")[1]
 Return ("SB1")->(DbSeek(PadR(cProduto, nTam)))
 
-Static Method ValidaOrigem(cOrigem as String) as Logical class ImportaPedidosCSV
+	Static Method ValidaOrigem(cOrigem as String) as Logical class ImportaPedidosCSV
 	If Empty(cOrigem)
 		Return .F.
 	EndIf
@@ -219,7 +195,7 @@ Static Method ValidaOrigem(cOrigem as String) as Logical class ImportaPedidosCSV
 	Local cOrigemTrim := AllTrim(Upper(cOrigem))
 Return cOrigemTrim == "CRM" .Or. cOrigemTrim == "ECOMMERCE" .Or. cOrigemTrim == "PROTHEUS"
 
-Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
+	Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
 	Local aHeader := ImportaPedidosCSV():LoadCSV(cHeaderFile)
 	Local aItens  := ImportaPedidosCSV():LoadCSV(cItensFile)
 	Local aPedidos := {}
@@ -243,7 +219,7 @@ Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical cl
 	ImportaPedidosCSV():ExecutaPedidos(aPedidos)
 Return .T.
 
-Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
+	Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
 	Local oFile := FWFileReader():New(cFile)
 	Local aCols := {}
 	Local aRet := {}
@@ -277,7 +253,7 @@ Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
 	oFile:Close()
 Return aRet
 
-Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
+	Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
 	Local aPedidos := {}
 	Local aIndex := {}
 
@@ -290,7 +266,7 @@ Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
 	Next
 Return aPedidos
 
-Static Method ValidaCliente(cCliente as String) as Logical class ImportaPedidosCSV
+	Static Method ValidaCliente(cCliente as String) as Logical class ImportaPedidosCSV
 	Local nTam := 0
 
 	If Empty(cCliente)

@@ -35,3 +35,35 @@ Static Method Importa(cHeaderFile, cItensFile) Class ImportaPedidosCSV
 
     ImportaPedidosCSV():ExecutaPedidos(aPedidos)
 Return .T.
+
+Static Method LoadCSV(cFile) Class ImportaPedidosCSV
+    Local oFile := FWFileReader():New(cFile)
+    Local aCols := {}
+    Local aRet := {}
+    Local cLine
+
+    If !oFile:Open()
+        ConOut("Erro ao abrir arquivo: " + cFile)
+        Return {}
+    EndIf
+
+    If oFile:HasLine()
+        cLine := oFile:GetLine()
+        aCols := StrTokArr(DeCodeUTF8(cLine), ";")
+    Else
+        oFile:Close()
+        Return {}
+    EndIf
+
+    While oFile:HasLine()
+        cLine := oFile:GetLine()
+        Local aVals := StrTokArr(DeCodeUTF8(cLine), ";")
+        Local rec := {}
+        For i := 1 To Min(Len(aCols), Len(aVals))
+            rec[AllTrim(aCols[i])] := AllTrim(aVals[i])
+        Next
+        AAdd(aRet, rec)
+    EndDo
+
+    oFile:Close()
+Return aRet

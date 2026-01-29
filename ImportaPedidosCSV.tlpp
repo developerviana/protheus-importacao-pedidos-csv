@@ -1,7 +1,7 @@
 #INCLUDE "PROTHEUS.CH"
 
 Class ImportaPedidosCSV
-    Static Method Importa(cHeaderFile, cItensFile)
+    Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical
     Static Method LoadCSV(cFile)
     Static Method AgrupaItens(aItens)
     Static Method ValidaCliente(cCliente)
@@ -94,7 +94,7 @@ Static Method ValidaProduto(cProduto) Class ImportaPedidosCSV
 Return
 
 
-Static Method Importa(cHeaderFile, cItensFile) Class ImportaPedidosCSV
+Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
     Local aHeader := ImportaPedidosCSV():LoadCSV(cHeaderFile)
     Local aItens  := ImportaPedidosCSV():LoadCSV(cItensFile)
     Local aPedidos := {}

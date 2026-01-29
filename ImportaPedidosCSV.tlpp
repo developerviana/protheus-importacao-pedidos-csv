@@ -2,6 +2,40 @@
 #INCLUDE "RWMAKE.CH"
 #INCLUDE "TbiConn.Ch"
 
+/*
+	Classe: ImportaPedidosCSV
+	
+	Objetivo:
+	Importar pedidos de venda (SC5/SC6) a partir de arquivos CSV, com validações
+	de integridade referencial e execução automática via MSEXECAUTO.
+	
+	Responsabilidades:
+	- Ler e processar arquivos CSV (cabeçalho e itens)
+	- Validar integridade de dados contra tabelas Protheus (SA1, SB1)
+	- Validar regras de negócio (quantidade, preço, origem)
+	- Evitar duplicação de pedidos no lote
+	- Montar estrutura de dados para executor automático
+	- Executar criação de pedidos via MSEXECAUTO com tratamento de logs
+	
+	Métodos:
+	- Importa(cHeaderFile, cItensFile): Orquestra o fluxo completo
+	- LoadCSV(cFile): Lê e mapeia dados do arquivo CSV
+	- AgrupaItens(aItens): Agrupa itens por pedido externo
+	- ValidaCliente(cCliente): Verifica existência em SA1
+	- ValidaProduto(cProduto): Verifica existência em SB1
+	- ValidaOrigem(cOrigem): Valida origem (CRM, Ecommerce, Protheus)
+	- ExecutaPedidos(aPedidos): Executa criação de pedidos
+	
+	Uso:
+	- User Function ImportaPedidosCSV() : Abre interface gráfica
+	- ImportaPedidosCSV():Importa(cHeader, cItens) : Importação direta
+	
+	Pré-requisitos:
+	- Framework Protheus 12+
+	- Arquivos CSV com separador ';' e encoding UTF-8
+	- Ajustar mapeamento de campos SC5/SC6 conforme dicionário local
+*/
+
 Class ImportaPedidosCSV
 	Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical
 	Static Method LoadCSV(cFile as String) as Array

@@ -2,7 +2,7 @@
 
 Class ImportaPedidosCSV
     Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical
-    Static Method LoadCSV(cFile)
+    Static Method LoadCSV(cFile as String) as Array
     Static Method AgrupaItens(aItens)
     Static Method ValidaCliente(cCliente)
     Static Method ValidaProduto(cProduto)
@@ -117,7 +117,7 @@ Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical cl
     ImportaPedidosCSV():ExecutaPedidos(aPedidos)
 Return .T.
 
-Static Method LoadCSV(cFile) Class ImportaPedidosCSV
+Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
     Local oFile := FWFileReader():New(cFile)
     Local aCols := {}
     Local aRet := {}

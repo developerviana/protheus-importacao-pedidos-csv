@@ -52,9 +52,21 @@ Return
 	Local aExec := {}
 	Local aPedidoExec := {}
 	Local aProcessed := {}
+	Local cPed := ""
+	Local header := {}
+	Local aItens := {}
+	Local aItensValidos := {}
+	Local nQt   := 0
+	Local nPreco:= 0
+	Local aDat := {}
+	Local aHeaderFields := {}
+	Local aItems := {}
+	Local nItemNo := 1
+	Local aItemFields := {}
+	Local it := {}
 
 	For i := 1 To Len(aPedidos)
-		Local cPed := aPedidos[i]:pedido
+		cPed := aPedidos[i]:pedido
 
 		If aProcessed[cPed] != NIL
 			ConOut("Pedido duplicado no lote, ignorando: " + cPed)
@@ -62,27 +74,25 @@ Return
 		EndIf
 		aProcessed[cPed] := .T.
 
-		Local header := aPedidos[i]:header
+		header := aPedidos[i]:header
 		If header == NIL .Or. Len(header) == 0
 			ConOut("Header não encontrado para pedido: " + cPed + " - ignorando")
 			Continue
 		EndIf
 
-		Local cCliente := header["Cliente"]
-		If !ImportaPedidosCSV():ValidaCliente(cCliente)
-			ConOut("Cliente inválido para pedido " + cPed + ": " + cCliente)
+		If !ImportaPedidosCSV():ValidaCliente(header["Cliente"])
+			ConOut("Cliente inválido para pedido " + cPed + ": " + header["Cliente"])
 			Continue
 		EndIf
 
-		Local aItens := aPedidos[i]:itens
-		Local aItensValidos := {}
+		aItens := aPedidos[i]:itens
+		aItensValidos := {}
 		For j := 1 To Len(aItens)
-			Local cProd := aItens[j]["Produto"]
-			Local nQt   := Val(AllTrim(aItens[j]["Quantidade"]))
-			Local nPreco:= Val(AllTrim(aItens[j]["PrecoUnit"]))
+			nQt   := Val(AllTrim(aItens[j]["Quantidade"]))
+			nPreco:= Val(AllTrim(aItens[j]["PrecoUnit"]))
 
-			If !ImportaPedidosCSV():ValidaProduto(cProd)
-				ConOut("Produto inexistente para pedido " + cPed + " item " + aItens[j]["Item"] + ": " + cProd)
+			If !ImportaPedidosCSV():ValidaProduto(aItens[j]["Produto"])
+				ConOut("Produto inexistente para pedido " + cPed + " item " + aItens[j]["Item"] + ": " + aItens[j]["Produto"])
 				Continue
 			EndIf
 
@@ -109,12 +119,12 @@ Return
 	EndIf
 
 	For k := 1 To Len(aExec)
-		ConOut("Preparando criação do pedido externo: " + aExec[k]["pedido_externo"]) 
+		ConOut("Preparando criação do pedido externo: " + aExec[k]["pedido_externo"])
 		ConOut(" Itens válidos: " + Str(Len(aExec[k]["itens"])))
 
-		Local aDat := {}
-		Local aHeaderFields := {}
-		Local header := aExec[k]["header"]
+		aDat := {}
+		aHeaderFields := {}
+		header := aExec[k]["header"]
 
 		AAdd(aHeaderFields, {"C5_FILIAL", IIf(Header["Filial"]==NIL, "01", header["Filial"]) })
 		AAdd(aHeaderFields, {"C5_EMISSAO", header["Emissao"]})
@@ -128,11 +138,11 @@ Return
 
 		AAdd(aDat, {"SC5", aHeaderFields})
 
-		Local aItems := aExec[k]["itens"]
-		Local nItemNo := 1
+		aItems := aExec[k]["itens"]
+		nItemNo := 1
 		For m := 1 To Len(aItems)
-			Local aItemFields := {}
-			Local it := aItems[m]
+			aItemFields := {}
+			it := aItems[m]
 			AAdd(aItemFields, {"C6_ITEM", PadL(Str(nItemNo),3,'0')})
 			AAdd(aItemFields, {"C6_PRODUTO", it["Produto"]})
 			AAdd(aItemFields, {"C6_QTD", it["Quantidade"]})
@@ -142,8 +152,8 @@ Return
 			nItemNo++
 		Next
 
-		Local nNOPC := 3
-		Local cLog := ""
+		nNOPC := 3
+		cLog := ""
 		MSEXECAUTO( {|x,y| cLog += y + CRLF }, aDat, nNOPC )
 		ConOut("Resultado MSEXECAUTO:\n" + cLog)
 	Next
@@ -161,7 +171,6 @@ Return .T.
 	("SB1")->(DbSetOrder(1))
 	Local nTam := TamSX3("B1_COD")[1]
 Return ("SB1")->(DbSeek(PadR(cProduto, nTam)))
-Return
 
 
 	Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
@@ -223,6 +232,7 @@ Return aRet
 	Local aPedidos := {}
 	Local aIndex := {}
 	Local cPed
+
 	For i := 1 To Len(aItens)
 		cPed := aItens[i]["PedidoExterno"]
 		If Empty(cPed)
@@ -238,7 +248,7 @@ Return aRet
 	Next
 Return aPedidos
 
-	Static Method ValidaCliente(cCliente as String) as Logical class ImportaPedidosCSV
+Static Method ValidaCliente(cCliente as String) as Logical class ImportaPedidosCSV
 	If Empty(cCliente)
 		Return .F.
 	EndIf
@@ -247,4 +257,3 @@ Return aPedidos
 	("SA1")->(DbSetOrder(3))
 	Local nTam := TamSX3("A1_COD")[1]
 Return ("SA1")->(DbSeek(PadR(cCliente, nTam)))
-Return

@@ -8,6 +8,7 @@ Class ImportaPedidosCSV
 	Static Method AgrupaItens(aItens as Array) as Array
 	Static Method ValidaCliente(cCliente as String) as Logical
 	Static Method ValidaProduto(cProduto as String) as Logical
+	Static Method ValidaOrigem(cOrigem as String) as Logical
 	Static Method ExecutaPedidos(aPedidos as Array) as Logical
 EndClass
 
@@ -48,7 +49,7 @@ User Function ImportaPedidosCSV()
 	oDialog:Activate()
 Return
 
-	Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosCSV
+Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosCSV
 	Local aExec := {}
 	Local aPedidoExec := {}
 	Local aProcessed := {}
@@ -82,6 +83,11 @@ Return
 
 		If !ImportaPedidosCSV():ValidaCliente(header["Cliente"])
 			ConOut("Cliente inválido para pedido " + cPed + ": " + header["Cliente"])
+			Continue
+		EndIf
+
+		If !ImportaPedidosCSV():ValidaOrigem(header["Origem"])
+			ConOut("Origem inválida para pedido " + cPed + ": " + header["Origem"])
 			Continue
 		EndIf
 
@@ -157,12 +163,9 @@ Return
 		MSEXECAUTO( {|x,y| cLog += y + CRLF }, aDat, nNOPC )
 		ConOut("Resultado MSEXECAUTO:\n" + cLog)
 	Next
-
 Return .T.
 
-
-
-	Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV
+Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV
 	Local nTam := 0
 
 	If Empty(cProduto)
@@ -174,8 +177,15 @@ Return .T.
 	nTam := TamSX3("B1_COD")[1]
 Return ("SB1")->(DbSeek(PadR(cProduto, nTam)))
 
+Static Method ValidaOrigem(cOrigem as String) as Logical class ImportaPedidosCSV
+	If Empty(cOrigem)
+		Return .F.
+	EndIf
 
-	Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
+	Local cOrigemTrim := AllTrim(Upper(cOrigem))
+Return cOrigemTrim == "CRM" .Or. cOrigemTrim == "ECOMMERCE" .Or. cOrigemTrim == "PROTHEUS"
+
+Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
 	Local aHeader := ImportaPedidosCSV():LoadCSV(cHeaderFile)
 	Local aItens  := ImportaPedidosCSV():LoadCSV(cItensFile)
 	Local aPedidos := {}
@@ -199,7 +209,7 @@ Return ("SB1")->(DbSeek(PadR(cProduto, nTam)))
 	ImportaPedidosCSV():ExecutaPedidos(aPedidos)
 Return .T.
 
-	Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
+Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
 	Local oFile := FWFileReader():New(cFile)
 	Local aCols := {}
 	Local aRet := {}
@@ -233,7 +243,7 @@ Return .T.
 	oFile:Close()
 Return aRet
 
-	Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
+Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
 	Local aPedidos := {}
 	Local aIndex := {}
 
@@ -246,7 +256,7 @@ Return aRet
 	Next
 Return aPedidos
 
-	Static Method ValidaCliente(cCliente as String) as Logical class ImportaPedidosCSV
+Static Method ValidaCliente(cCliente as String) as Logical class ImportaPedidosCSV
 	Local nTam := 0
 
 	If Empty(cCliente)

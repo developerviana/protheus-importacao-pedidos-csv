@@ -86,3 +86,14 @@ Static Method AgrupaItens(aItens) Class ImportaPedidosCSV
         AAdd(aPedidos[ aIndex[cPed] ]:itens, aItens[i])
     Next
 Return aPedidos
+
+Static Method ValidaCliente(cCliente) Class ImportaPedidosCSV
+    If Empty(cCliente)
+        Return .F.
+    EndIf
+
+    DbSelectArea("SA1")
+    ("SA1")->(DbSetOrder(3))
+    Local nTam := TamSX3("A1_COD")[1]
+    Return ("SA1")->(DbSeek(PadR(cCliente, nTam)))
+Return

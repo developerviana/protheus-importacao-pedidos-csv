@@ -1,0 +1,14 @@
+#INCLUDE "PROTHEUS.CH"
+
+Class ImportaPedidosCSV
+    Static Method Importa(cHeaderFile, cItensFile)
+    Static Method LoadCSV(cFile)
+    Static Method AgrupaItens(aItens)
+    Static Method ValidaCliente(cCliente)
+    Static Method ValidaProduto(cProduto)
+    Static Method ExecutaPedidos(aPedidos)
+EndClass
+
+User Function ImportaPedidosCSV()
+    Return .T.
+Return

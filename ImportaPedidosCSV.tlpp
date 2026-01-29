@@ -168,7 +168,7 @@ Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
     Next
 Return aPedidos
 
-Static Method ValidaCliente(cCliente) Class ImportaPedidosCSV
+Static Method ValidaCliente(cCliente as String) as Logical class ImportaPedidosCSV
     If Empty(cCliente)
         Return .F.
     EndIf

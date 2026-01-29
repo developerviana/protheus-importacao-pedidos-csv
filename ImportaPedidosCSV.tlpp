@@ -3,10 +3,10 @@
 Class ImportaPedidosCSV
     Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical
     Static Method LoadCSV(cFile as String) as Array
-    Static Method AgrupaItens(aItens)
-    Static Method ValidaCliente(cCliente)
-    Static Method ValidaProduto(cProduto)
-    Static Method ExecutaPedidos(aPedidos)
+    Static Method AgrupaItens(aItens as Array) as Array
+    Static Method ValidaCliente(cCliente as String) as Logical
+    Static Method ValidaProduto(cProduto as String) as Logical
+    Static Method ExecutaPedidos(aPedidos as Array) as Logical
 EndClass
 
 User Function ImportaPedidosCSV()
@@ -149,7 +149,7 @@ Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
     oFile:Close()
 Return aRet
 
-Static Method AgrupaItens(aItens) Class ImportaPedidosCSV
+Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
     Local aPedidos := {}
     Local aIndex := {}
     Local cPed

@@ -228,23 +228,16 @@ Return .T.
 	oFile:Close()
 Return aRet
 
-	Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
+Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
 	Local aPedidos := {}
 	Local aIndex := {}
-	Local cPed
 
 	For i := 1 To Len(aItens)
-		cPed := aItens[i]["PedidoExterno"]
-		If Empty(cPed)
-			ConOut("Linha de item sem PedidoExterno, ignorando: " + Str(i))
-			Continue
+		If aIndex[aItens[i]["PedidoExterno"]] == NIL
+			aIndex[aItens[i]["PedidoExterno"]] := Len(aPedidos) + 1
+			AAdd(aPedidos, { pedido := aItens[i]["PedidoExterno"], itens := {} })
 		EndIf
-
-		If aIndex[cPed] == NIL
-			aIndex[cPed] := Len(aPedidos) + 1
-			AAdd(aPedidos, { pedido := cPed, itens := {} })
-		EndIf
-		AAdd(aPedidos[ aIndex[cPed] ]:itens, aItens[i])
+		AAdd(aPedidos[ aIndex[aItens[i]["PedidoExterno"]] ]:itens, aItens[i])
 	Next
 Return aPedidos
 

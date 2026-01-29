@@ -12,3 +12,26 @@ EndClass
 User Function ImportaPedidosCSV()
     Return .T.
 Return
+
+Static Method Importa(cHeaderFile, cItensFile) Class ImportaPedidosCSV
+    Local aHeader := ImportaPedidosCSV():LoadCSV(cHeaderFile)
+    Local aItens  := ImportaPedidosCSV():LoadCSV(cItensFile)
+    Local aPedidos := {}
+
+    If Len(aItens) == 0
+        ConOut("Nenhum item encontrado no arquivo de itens.")
+        Return .F.
+    EndIf
+
+    aPedidos := ImportaPedidosCSV():AgrupaItens(aItens)
+
+    For n := 1 To Len(aPedidos)
+        If n <= Len(aHeader)
+            aPedidos[n]:header := aHeader[n]
+        Else
+            aPedidos[n]:header := {}
+        EndIf
+    Next
+
+    ImportaPedidosCSV():ExecutaPedidos(aPedidos)
+Return .T.

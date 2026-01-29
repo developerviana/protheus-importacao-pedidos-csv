@@ -162,7 +162,7 @@ Return
 Return .T.
 
 
-	Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV
+Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV
 	If Empty(cProduto)
 		Return .F.
 	EndIf

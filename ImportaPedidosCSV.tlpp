@@ -173,10 +173,11 @@ Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosC
 Return ("SB1")->(DbSeek(PadR(cProduto, nTam)))
 
 
-	Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
+Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
 	Local aHeader := ImportaPedidosCSV():LoadCSV(cHeaderFile)
 	Local aItens  := ImportaPedidosCSV():LoadCSV(cItensFile)
 	Local aPedidos := {}
+	Local n := 0
 
 	If Len(aItens) == 0
 		ConOut("Nenhum item encontrado no arquivo de itens.")

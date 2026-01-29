@@ -82,7 +82,7 @@ Static Method ExecutaPedidos(aPedidos) Class ImportaPedidosCSV
 Return .T.
 
 
-Static Method ValidaProduto(cProduto) Class ImportaPedidosCSV
+Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV
     If Empty(cProduto)
         Return .F.
     EndIf

@@ -197,7 +197,7 @@ Static Method ValidaCabecalho(header, cPed) class ImportaPedidosCSV
 		Return .F.
 	EndIf
 
-	If !ImportaPedidosCSV():ValidaOrigem(header["Origem"])
+	If header["Origem"] != Nil .And. !ImportaPedidosCSV():ValidaOrigem(header["Origem"])
 		ConOut("Origem inválida para pedido " + cPed + ": " + header["Origem"])
 		Return .F.
 	EndIf
@@ -269,7 +269,9 @@ Static Method GravaPedidos(aExec) class ImportaPedidosCSV
 		AAdd(aHeaderFields, {"C5_TABELA", header["TabelaPreco"]})
 		AAdd(aHeaderFields, {"C5_VENDEDOR", header["Vendedor"]})
 		AAdd(aHeaderFields, {"C5_OBS", header["Obs"]})
-		AAdd(aHeaderFields, {"C5_ORIGEM", header["Origem"]})
+		If header["Origem"] != Nil
+			AAdd(aHeaderFields, {"C5_ORIGEM", header["Origem"]})
+		EndIf
 
 		AAdd(aDat, {"SC5", aHeaderFields})
 

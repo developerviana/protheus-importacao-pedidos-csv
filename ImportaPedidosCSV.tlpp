@@ -151,13 +151,13 @@ Static Method PreparaPedidos(aPedidos) class ImportaPedidosCSV
 
 		If aProcessed[cPed] != NIL
 			ConOut("Pedido duplicado no lote, ignorando: " + cPed)
-			Continue
+			Loop
 		EndIf
 		aProcessed[cPed] := .T.
 
 		header := aPedidos[i]["header"]
 		If !ImportaPedidosCSV():ValidaCabecalho(header, cPed)
-			Continue
+			Loop
 		EndIf
 
 		aItens := aPedidos[i]["itens"]
@@ -165,7 +165,7 @@ Static Method PreparaPedidos(aPedidos) class ImportaPedidosCSV
 
 		If Len(aItensValidos) == 0
 			ConOut("Nenhum item válido para pedido: " + cPed + " - não será criado.")
-			Continue
+			Loop
 		EndIf
 
 		aPedidoExec := JsonObject():New()
@@ -177,7 +177,8 @@ Static Method PreparaPedidos(aPedidos) class ImportaPedidosCSV
 Return aExec
 
 Static Method ValidaCabecalho(header, cPed) class ImportaPedidosCSV
-	If header == NIL .Or. (ValType(header) == "A" .And. Len(header) == 0) // Basic check
+
+	If header == NIL .Or. (ValType(header) == "A" .And. Len(header) == 0) 
 		ConOut("Header não encontrado para pedido: " + cPed + " - ignorando")
 		Return .F.
 	EndIf
@@ -207,12 +208,12 @@ Static Method ValidaItensPedido(aItens, cPed) class ImportaPedidosCSV
 
 		If !ImportaPedidosCSV():ValidaProduto(oItem["Produto"])
 			ConOut("Produto inexistente para pedido " + cPed + " item " + oItem["Item"] + ": " + oItem["Produto"])
-			Continue
+			Loop
 		EndIf
 
 		If nQt <= 0 .Or. nPreco <= 0
 			ConOut("Item inválido para pedido " + cPed + " item " + oItem["Item"])
-			Continue
+			Loop
 		EndIf
 
 		AAdd(aItensValidos, oItem)

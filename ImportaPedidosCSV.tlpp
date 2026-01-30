@@ -130,9 +130,10 @@ Static Method LoadCSV(cFile) class ImportaPedidosCSV
 	oFile:Close()
 Return aRet
 
-
 Static Method ExecutaPedidos(aPedidos) class ImportaPedidosCSV
-	Local aExec := ImportaPedidosCSV():PreparaPedidos(aPedidos)
+	Local aExec := {}
+
+	aExec := ImportaPedidosCSV():PreparaPedidos(aPedidos)
 	ImportaPedidosCSV():GravaPedidos(aExec)
 Return .T.
 
@@ -145,34 +146,42 @@ Static Method PreparaPedidos(aPedidos) class ImportaPedidosCSV
 	Local aItens := {}
 	Local aItensValidos := {}
 	Local i := 0
+	Local lValid := .T.
 
 	For i := 1 To Len(aPedidos)
+		lValid := .T.
 		cPed := aPedidos[i]["pedido"]
 
 		If aProcessed[cPed] != NIL
 			ConOut("Pedido duplicado no lote, ignorando: " + cPed)
-			Loop
+			lValid := .F.
 		EndIf
-		aProcessed[cPed] := .T.
-
-		header := aPedidos[i]["header"]
-		If !ImportaPedidosCSV():ValidaCabecalho(header, cPed)
-			Loop
-		EndIf
-
-		aItens := aPedidos[i]["itens"]
-		aItensValidos := ImportaPedidosCSV():ValidaItensPedido(aItens, cPed)
-
-		If Len(aItensValidos) == 0
-			ConOut("Nenhum item válido para pedido: " + cPed + " - não será criado.")
-			Loop
+		
+		If lValid
+			aProcessed[cPed] := .T.
+			header := aPedidos[i]["header"]
+			If !ImportaPedidosCSV():ValidaCabecalho(header, cPed)
+				lValid := .F.
+			EndIf
 		EndIf
 
-		aPedidoExec := JsonObject():New()
-		aPedidoExec["pedido_externo"] := cPed
-		aPedidoExec["header"] := header
-		aPedidoExec["itens"] := aItensValidos
-		AAdd(aExec, aPedidoExec)
+		If lValid
+			aItens := aPedidos[i]["itens"]
+			aItensValidos := ImportaPedidosCSV():ValidaItensPedido(aItens, cPed)
+
+			If Len(aItensValidos) == 0
+				ConOut("Nenhum item válido para pedido: " + cPed + " - não será criado.")
+				lValid := .F.
+			EndIf
+		EndIf
+
+		If lValid
+			aPedidoExec := JsonObject():New()
+			aPedidoExec["pedido_externo"] := cPed
+			aPedidoExec["header"] := header
+			aPedidoExec["itens"] := aItensValidos
+			AAdd(aExec, aPedidoExec)
+		EndIf
 	Next
 Return aExec
 
@@ -200,23 +209,29 @@ Static Method ValidaItensPedido(aItens, cPed) class ImportaPedidosCSV
 	Local nQt := 0
 	Local nPreco := 0
 	Local oItem := Nil
+	Local lItemValid := .T.
 
 	For j := 1 To Len(aItens)
+		lItemValid := .T.
 		oItem := aItens[j]
 		nQt   := Val(AllTrim(oItem["Quantidade"]))
 		nPreco:= Val(AllTrim(oItem["PrecoUnit"]))
 
 		If !ImportaPedidosCSV():ValidaProduto(oItem["Produto"])
 			ConOut("Produto inexistente para pedido " + cPed + " item " + oItem["Item"] + ": " + oItem["Produto"])
-			Loop
+			lItemValid := .F.
 		EndIf
 
-		If nQt <= 0 .Or. nPreco <= 0
-			ConOut("Item inválido para pedido " + cPed + " item " + oItem["Item"])
-			Loop
+		If lItemValid
+			If nQt <= 0 .Or. nPreco <= 0
+				ConOut("Item inválido para pedido " + cPed + " item " + oItem["Item"])
+				lItemValid := .F.
+			EndIf
 		EndIf
 
-		AAdd(aItensValidos, oItem)
+		If lItemValid
+			AAdd(aItensValidos, oItem)
+		EndIf
 	Next
 Return aItensValidos
 

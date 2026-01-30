@@ -304,7 +304,7 @@ Static Method ValidaProduto(cProduto) class ImportaPedidosCSV
 	DbSelectArea("SB1")
 	("SB1")->(DbSetOrder(1))
 	nTam := TamSX3("B1_COD")[1]
-Return ("SB1")->(DbSeek(PadR(cProduto, nTam)))
+Return SB1->(dbSeek(xFilial("SB1") + cProduto))
 
 Static Method ValidaOrigem(cOrigem) class ImportaPedidosCSV
 	Local cOrigemTrim
@@ -343,6 +343,6 @@ Static Method ValidaCliente(cCliente) class ImportaPedidosCSV
 	EndIf
 
 	DbSelectArea("SA1")
-	("SA1")->(DbSetOrder(3))
+	("SA1")->(DbSetOrder(1))
 	nTam := TamSX3("A1_COD")[1]
-Return ("SA1")->(DbSeek(PadR(cCliente, nTam)))
+Return SA1->(DbSeek(xFilial("SA1") + cCliente))

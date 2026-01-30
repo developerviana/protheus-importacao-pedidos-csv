@@ -13,53 +13,121 @@
 */
 
 Class ImportaPedidosCSV
-	Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical
-	Static Method LoadCSV(cFile as String) as Array
-	Static Method AgrupaItens(aItens as Array) as Array
-	Static Method ValidaCliente(cCliente as String) as Logical
-	Static Method ValidaProduto(cProduto as String) as Logical
-	Static Method ValidaOrigem(cOrigem as String) as Logical
-	Static Method ExecutaPedidos(aPedidos as Array) as Logical
+	Static Method Importa(cHeaderFile, cItensFile)
+	Static Method LoadCSV(cFile) 
+	Static Method AgrupaItens(aItens)
+	Static Method ValidaCliente(cCliente)
+	Static Method ValidaProduto(cProduto)
+	Static Method ValidaOrigem(cOrigem)
+	Static Method ExecutaPedidos(aPedidos)
 EndClass
 
 User Function ImportaPedidosCSV()
 	Local oDialog := FWDialogModal():New()
-	Local oContainer := TPanel():New( ,,, oDialog:getPanelMain() )
+	Local oContainer := Nil
 	Local cHeader := ""
 	Local cItens := ""
+	Local bSair  := NIL
+	Local bImport := NIL
 
-	Local bImport := {| |
-	If Empty(cHeader) .Or. Empty(cItens)
-		FWAlertInfo("Informe os dois arquivos (header e itens).", "Dados incompletos")
-		Return
-	EndIf
-	FwMsgRun(,{|oSay| ImportaPedidosCSV():Importa(cHeader, cItens) }, 'Importando... Aguarde', "")
-	}
+	bImport := {| | ValidacaoImportaPedidosCSV(cHeader, cItens) }
 
-	Local bSair := {|| Iif(MsgYesNo('Deseja sair?', 'Sair'), oDialog:DeActivate(), NIL) }
+	bSair := {|| Iif(MsgYesNo('Deseja sair?', 'Sair'), oDialog:DeActivate(), NIL) }
 
 	oDialog:SetBackground(.T.)
 	oDialog:SetTitle('Importação de arquivos CSV')
-	oDialog:SetSize(180, 140)
+	oDialog:SetSize(150, 140)
 	oDialog:CreateDialog()
 	oDialog:CreateFormBar()
 	oDialog:AddButton('Importar', bImport, 'Importar', , .T., .F., .T.)
 	oDialog:AddButton('Sair', bSair, 'Sair', , .T., .F., .T.)
 
+	oContainer := TPanel():New( ,,, oDialog:getPanelMain() )
 	oContainer:Align := CONTROL_ALIGN_ALLCLIENT
 
-	TSay():New(010,010,{||'Header (.csv):'},oContainer,,,,,,.T.,,,120,10)
-	tGet():New(033,020,{|u| If(PCount()>0,cHeader:=u,cHeader)},oContainer ,100,09,"",,,,,,,.T.,,, {|| .T. } ,,,,.F.,,,"cHeader")
-	TButton():New(138, 18, "Selecionar..." ,oContainer,{|| cHeader := cGetFile("Arquivos CSV | *.CSV*","Selecione Header",,"",.F.,GETF_LOCALHARD+GETF_NETWORKDRIVE,.F.) } , 60,10)
+	TSay():New(007,010,{||'Header (.csv):'},oContainer,,,,,,.T.,,,120,10)
+	tGet():New(015,010,{|u| If(PCount()>0,cHeader:=u,cHeader)},oContainer ,120,09,"",,,,,,,.T.,,, {|| .T. } ,,,,.F.,,,"cHeader")
+	TButton():New(028,010 , "Selecionar..." ,oContainer,{|| (cHeader := cGetFile("Arquivos CSV | *.CSV*","Selecione Header",,"",.F.,GETF_LOCALHARD+GETF_NETWORKDRIVE,.F.)), FwMsgRun(,{|oSay|},'Buscando Planilhas ... ',"",) } , 50,10,,,.F.,.T.,.F.,,.F.,,,.F. )
 
-	TSay():New(010,040,{||'Itens (.csv):'},oContainer,,,,,,.T.,,,120,10)
-	tGet():New(033,050,{|u| If(PCount()>0,cItens:=u,cItens)},oContainer ,100,09,"",,,,,,,.T.,,, {|| .T. } ,,,,.F.,,,"cItens")
-	TButton():New(138, 48, "Selecionar..." ,oContainer,{|| cItens := cGetFile("Arquivos CSV | *.CSV*","Selecione Itens",,"",.F.,GETF_LOCALHARD+GETF_NETWORKDRIVE,.F.) } , 60,10)
+	TSay():New(060,010,{||'Itens (.csv):'},oContainer,,,,,,.T.,,,120,10)
+	tGet():New(068,010,{|u| If(PCount()>0,cItens:=u,cItens)},oContainer ,120,09,"",,,,,,,.T.,,, {|| .T. } ,,,,.F.,,,"cItens")
+	TButton():New(080, 010, "Selecionar..." ,oContainer,{|| (cItens := cGetFile("Arquivos CSV | *.CSV*","Selecione Itens",,"",.F.,GETF_LOCALHARD+GETF_NETWORKDRIVE,.F.)), FwMsgRun(,{|oSay|},'Buscando Planilhas ... ',"",) } , 50,10,,,.F.,.T.,.F.,,.F.,,,.F. )
 
 	oDialog:Activate()
 Return
 
-	Static Method ExecutaPedidos(aPedidos as Array) as Logical class ImportaPedidosCSV
+Static Function ValidacaoImportaPedidosCSV(cHeader, cItens)
+
+	If Empty(cHeader) .Or. Empty(cItens)
+		FWAlertInfo("Informe os dois arquivos (header e itens).", "Dados incompletos")
+		Return
+	EndIf
+
+	FwMsgRun(,{|oSay| ImportaPedidosCSV():Importa(cHeader, cItens) }, 'Importando... Aguarde', "")
+
+Return
+
+Static Method Importa(cHeaderFile, cItensFile) class ImportaPedidosCSV
+	Local aHeader := ImportaPedidosCSV():LoadCSV(cHeaderFile)
+	Local aItens  := ImportaPedidosCSV():LoadCSV(cItensFile)
+	Local aPedidos := {}
+	Local n := 0
+
+	If Len(aItens) == 0
+		ConOut("Nenhum item encontrado no arquivo de itens.")
+		Return .F.
+	EndIf
+
+	aPedidos := ImportaPedidosCSV():AgrupaItens(aItens)
+
+	For n := 1 To Len(aPedidos)
+		If n <= Len(aHeader)
+			aPedidos[n]["header"] := aHeader[n]
+		Else
+			aPedidos[n]["header"] := JsonObject():New()
+		EndIf
+	Next
+
+	ImportaPedidosCSV():ExecutaPedidos(aPedidos)
+Return .T.
+
+Static Method LoadCSV(cFile) class ImportaPedidosCSV
+	Local oFile := FWFileReader():New(cFile)
+	Local aCols := {}
+	Local aRet := {}
+	Local cLine := ""
+	Local aVals := {}
+	Local oRec := Nil
+	Local nColIndex := 0
+
+	If !oFile:Open()
+		ConOut("Erro ao abrir arquivo: " + cFile)
+		Return {}
+	EndIf
+
+	If oFile:HasLine()
+		cLine := oFile:GetLine()
+		aCols := StrTokArr(DeCodeUTF8(cLine), ";")
+	Else
+		oFile:Close()
+		Return {}
+	EndIf
+
+	While oFile:HasLine()
+		cLine := oFile:GetLine()
+		aVals := StrTokArr(DeCodeUTF8(cLine), ";")
+		oRec := JsonObject():New()
+		For nColIndex := 1 To Min(Len(aCols), Len(aVals))
+			oRec[AllTrim(aCols[nColIndex])] := AllTrim(aVals[nColIndex])
+		Next
+		AAdd(aRet, oRec)
+	EndDo
+
+	oFile:Close()
+Return aRet
+
+
+Static Method ExecutaPedidos(aPedidos) class ImportaPedidosCSV
 	Local aExec := {}
 	Local aPedidoExec := {}
 	Local aProcessed := {}
@@ -75,9 +143,13 @@ Return
 	Local nItemNo := 1
 	Local aItemFields := {}
 	Local it := {}
+	Local i := 0
+	Local j := 0
+	Local k := 0
+	Local m := 0
 
 	For i := 1 To Len(aPedidos)
-		cPed := aPedidos[i]:pedido
+		cPed := aPedidos[i]["pedido"]
 
 		If aProcessed[cPed] != NIL
 			ConOut("Pedido duplicado no lote, ignorando: " + cPed)
@@ -85,7 +157,7 @@ Return
 		EndIf
 		aProcessed[cPed] := .T.
 
-		header := aPedidos[i]:header
+		header := aPedidos[i]["header"]
 		If header == NIL .Or. Len(header) == 0
 			ConOut("Header não encontrado para pedido: " + cPed + " - ignorando")
 			Continue
@@ -101,7 +173,7 @@ Return
 			Continue
 		EndIf
 
-		aItens := aPedidos[i]:itens
+		aItens := aPedidos[i]["itens"]
 		aItensValidos := {}
 		For j := 1 To Len(aItens)
 			nQt   := Val(AllTrim(aItens[j]["Quantidade"]))
@@ -175,7 +247,7 @@ Return
 	Next
 Return .T.
 
-	Static Method ValidaProduto(cProduto as String) as Logical class ImportaPedidosCSV
+Static Method ValidaProduto(cProduto) class ImportaPedidosCSV
 	Local nTam := 0
 
 	If Empty(cProduto)
@@ -187,86 +259,36 @@ Return .T.
 	nTam := TamSX3("B1_COD")[1]
 Return ("SB1")->(DbSeek(PadR(cProduto, nTam)))
 
-	Static Method ValidaOrigem(cOrigem as String) as Logical class ImportaPedidosCSV
+Static Method ValidaOrigem(cOrigem) class ImportaPedidosCSV
+	Local cOrigemTrim
+
 	If Empty(cOrigem)
 		Return .F.
 	EndIf
-
-	Local cOrigemTrim := AllTrim(Upper(cOrigem))
+	cOrigemTrim := AllTrim(Upper(cOrigem))
 Return cOrigemTrim == "CRM" .Or. cOrigemTrim == "ECOMMERCE" .Or. cOrigemTrim == "PROTHEUS"
 
-	Static Method Importa(cHeaderFile as String, cItensFile as String) as Logical class ImportaPedidosCSV
-	Local aHeader := ImportaPedidosCSV():LoadCSV(cHeaderFile)
-	Local aItens  := ImportaPedidosCSV():LoadCSV(cItensFile)
+Static Method AgrupaItens(aItens) class ImportaPedidosCSV
 	Local aPedidos := {}
-	Local n := 0
-
-	If Len(aItens) == 0
-		ConOut("Nenhum item encontrado no arquivo de itens.")
-		Return .F.
-	EndIf
-
-	aPedidos := ImportaPedidosCSV():AgrupaItens(aItens)
-
-	For n := 1 To Len(aPedidos)
-		If n <= Len(aHeader)
-			aPedidos[n]:header := aHeader[n]
-		Else
-			aPedidos[n]:header := {}
-		EndIf
-	Next
-
-	ImportaPedidosCSV():ExecutaPedidos(aPedidos)
-Return .T.
-
-	Static Method LoadCSV(cFile as String) as Array class ImportaPedidosCSV
-	Local oFile := FWFileReader():New(cFile)
-	Local aCols := {}
-	Local aRet := {}
-	Local cLine := ""
-	Local aVals := {}
-	Local rec := {}
-
-	If !oFile:Open()
-		ConOut("Erro ao abrir arquivo: " + cFile)
-		Return {}
-	EndIf
-
-	If oFile:HasLine()
-		cLine := oFile:GetLine()
-		aCols := StrTokArr(DeCodeUTF8(cLine), ";")
-	Else
-		oFile:Close()
-		Return {}
-	EndIf
-
-	While oFile:HasLine()
-		cLine := oFile:GetLine()
-		aVals := StrTokArr(DeCodeUTF8(cLine), ";")
-		rec := {}
-		For i := 1 To Min(Len(aCols), Len(aVals))
-			rec[AllTrim(aCols[i])] := AllTrim(aVals[i])
-		Next
-		AAdd(aRet, rec)
-	EndDo
-
-	oFile:Close()
-Return aRet
-
-	Static Method AgrupaItens(aItens as Array) as Array class ImportaPedidosCSV
-	Local aPedidos := {}
-	Local aIndex := {}
+	Local aIndex := JsonObject():New()
+	Local i := 0
+	Local oPedido := Nil
+	Local cPed := ""
 
 	For i := 1 To Len(aItens)
-		If aIndex[aItens[i]["PedidoExterno"]] == NIL
-			aIndex[aItens[i]["PedidoExterno"]] := Len(aPedidos) + 1
-			AAdd(aPedidos, { pedido := aItens[i]["PedidoExterno"], itens := {} })
+		cPed := aItens[i]["PedidoExterno"]
+		If aIndex[cPed] == NIL
+			aIndex[cPed] := Len(aPedidos) + 1
+			oPedido := JsonObject():New()
+			oPedido["pedido"] := cPed
+			oPedido["itens"] := {}
+			AAdd(aPedidos, oPedido)
 		EndIf
-		AAdd(aPedidos[ aIndex[aItens[i]["PedidoExterno"]] ]:itens, aItens[i])
+		AAdd(aPedidos[ aIndex[cPed] ]["itens"], aItens[i])
 	Next
 Return aPedidos
 
-	Static Method ValidaCliente(cCliente as String) as Logical class ImportaPedidosCSV
+Static Method ValidaCliente(cCliente) class ImportaPedidosCSV
 	Local nTam := 0
 
 	If Empty(cCliente)

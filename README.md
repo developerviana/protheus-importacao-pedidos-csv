@@ -37,6 +37,16 @@ Separador: `;` | Encoding: UTF-8
 - ✅ Pedido criado apenas com itens válidos
 - ✅ Evita duplicidade no lote (PedidoExterno)
 
+## Evolução do Projeto
+
+### Melhores e Correções Realizadas
+
+- **Correção de Loop/Continue:** Substituição de comandos `Continue` e `Loop` por controle de fluxo com flags booleanas, garantindo compatibilidade e legibilidade.
+- **Validação de Chaves (DbSeek/AvKey):** Refatoração das métodos `ValidaCliente` e `ValidaProduto` para utilizar `MsSeek` combinado com `AvKey` e `AllTrim`, assegurando buscas corretas independente de espaços em branco e posicionamento de filiais (`FWxFilial`).
+- **Hashmap com JsonObject:** Correção da estrutura de dados para agrupar header e itens, substituindo Arrays simples por `JsonObject` para permitir indexação por string (chave do pedido).
+- **Refatoração de Código:** Quebra do método monolítico `ExecutaPedidos` em métodos menores e especialistas (`PreparaPedidos`, `ValidaCabecalho`, `ValidaItensPedido`, `GravaPedidos`).
+- **Flexibilidade no Header:** O campo "Origem" agora é tratado como opcional na importação.
+
 ## Métodos Disponíveis
 
 | Método             | Descrição                                   |

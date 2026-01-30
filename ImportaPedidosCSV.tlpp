@@ -20,6 +20,10 @@ Class ImportaPedidosCSV
 	Static Method ValidaProduto(cProduto)
 	Static Method ValidaOrigem(cOrigem)
 	Static Method ExecutaPedidos(aPedidos)
+	Static Method PreparaPedidos(aPedidos)
+	Static Method ValidaCabecalho(header, cPed)
+	Static Method ValidaItensPedido(aItens, cPed)
+	Static Method GravaPedidos(aExec)
 EndClass
 
 User Function ImportaPedidosCSV()
@@ -128,25 +132,19 @@ Return aRet
 
 
 Static Method ExecutaPedidos(aPedidos) class ImportaPedidosCSV
+	Local aExec := ImportaPedidosCSV():PreparaPedidos(aPedidos)
+	ImportaPedidosCSV():GravaPedidos(aExec)
+Return .T.
+
+Static Method PreparaPedidos(aPedidos) class ImportaPedidosCSV
 	Local aExec := {}
-	Local aPedidoExec := {}
-	Local aProcessed := {}
+	Local aPedidoExec := Nil
+	Local aProcessed := JsonObject():New()
 	Local cPed := ""
-	Local header := {}
+	Local header := Nil
 	Local aItens := {}
 	Local aItensValidos := {}
-	Local nQt   := 0
-	Local nPreco:= 0
-	Local aDat := {}
-	Local aHeaderFields := {}
-	Local aItems := {}
-	Local nItemNo := 1
-	Local aItemFields := {}
-	Local it := {}
 	Local i := 0
-	Local j := 0
-	Local k := 0
-	Local m := 0
 
 	For i := 1 To Len(aPedidos)
 		cPed := aPedidos[i]["pedido"]
@@ -158,48 +156,81 @@ Static Method ExecutaPedidos(aPedidos) class ImportaPedidosCSV
 		aProcessed[cPed] := .T.
 
 		header := aPedidos[i]["header"]
-		If header == NIL .Or. Len(header) == 0
-			ConOut("Header não encontrado para pedido: " + cPed + " - ignorando")
-			Continue
-		EndIf
-
-		If !ImportaPedidosCSV():ValidaCliente(header["Cliente"])
-			ConOut("Cliente inválido para pedido " + cPed + ": " + header["Cliente"])
-			Continue
-		EndIf
-
-		If !ImportaPedidosCSV():ValidaOrigem(header["Origem"])
-			ConOut("Origem inválida para pedido " + cPed + ": " + header["Origem"])
+		If !ImportaPedidosCSV():ValidaCabecalho(header, cPed)
 			Continue
 		EndIf
 
 		aItens := aPedidos[i]["itens"]
-		aItensValidos := {}
-		For j := 1 To Len(aItens)
-			nQt   := Val(AllTrim(aItens[j]["Quantidade"]))
-			nPreco:= Val(AllTrim(aItens[j]["PrecoUnit"]))
-
-			If !ImportaPedidosCSV():ValidaProduto(aItens[j]["Produto"])
-				ConOut("Produto inexistente para pedido " + cPed + " item " + aItens[j]["Item"] + ": " + aItens[j]["Produto"])
-				Continue
-			EndIf
-
-			If nQt <= 0 .Or. nPreco <= 0
-				ConOut("Item inválido para pedido " + cPed + " item " + aItens[j]["Item"])
-				Continue
-			EndIf
-
-			AAdd(aItensValidos, aItens[j])
-		Next
+		aItensValidos := ImportaPedidosCSV():ValidaItensPedido(aItens, cPed)
 
 		If Len(aItensValidos) == 0
 			ConOut("Nenhum item válido para pedido: " + cPed + " - não será criado.")
 			Continue
 		EndIf
 
-		aPedidoExec := { pedido_externo := cPed, header := header, itens := aItensValidos }
+		aPedidoExec := JsonObject():New()
+		aPedidoExec["pedido_externo"] := cPed
+		aPedidoExec["header"] := header
+		aPedidoExec["itens"] := aItensValidos
 		AAdd(aExec, aPedidoExec)
 	Next
+Return aExec
+
+Static Method ValidaCabecalho(header, cPed) class ImportaPedidosCSV
+	If header == NIL .Or. (ValType(header) == "A" .And. Len(header) == 0) // Basic check
+		ConOut("Header não encontrado para pedido: " + cPed + " - ignorando")
+		Return .F.
+	EndIf
+
+	If !ImportaPedidosCSV():ValidaCliente(header["Cliente"])
+		ConOut("Cliente inválido para pedido " + cPed + ": " + header["Cliente"])
+		Return .F.
+	EndIf
+
+	If !ImportaPedidosCSV():ValidaOrigem(header["Origem"])
+		ConOut("Origem inválida para pedido " + cPed + ": " + header["Origem"])
+		Return .F.
+	EndIf
+Return .T.
+
+Static Method ValidaItensPedido(aItens, cPed) class ImportaPedidosCSV
+	Local aItensValidos := {}
+	Local j := 0
+	Local nQt := 0
+	Local nPreco := 0
+	Local oItem := Nil
+
+	For j := 1 To Len(aItens)
+		oItem := aItens[j]
+		nQt   := Val(AllTrim(oItem["Quantidade"]))
+		nPreco:= Val(AllTrim(oItem["PrecoUnit"]))
+
+		If !ImportaPedidosCSV():ValidaProduto(oItem["Produto"])
+			ConOut("Produto inexistente para pedido " + cPed + " item " + oItem["Item"] + ": " + oItem["Produto"])
+			Continue
+		EndIf
+
+		If nQt <= 0 .Or. nPreco <= 0
+			ConOut("Item inválido para pedido " + cPed + " item " + oItem["Item"])
+			Continue
+		EndIf
+
+		AAdd(aItensValidos, oItem)
+	Next
+Return aItensValidos
+
+Static Method GravaPedidos(aExec) class ImportaPedidosCSV
+	Local k := 0
+	Local m := 0
+	Local aDat := {}
+	Local aHeaderFields := {}
+	Local header := Nil
+	Local aItems := {}
+	Local it := Nil
+	Local nItemNo := 1
+	Local aItemFields := {}
+	Local cLog := ""
+	Local nNOPC := 3
 
 	If Len(aExec) == 0
 		ConOut("Nenhum pedido preparado para execução.")

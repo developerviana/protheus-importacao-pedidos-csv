@@ -275,7 +275,7 @@ Static Method GravaPedidos(aExec) Class ImportaPedidosCSV
         AAdd(aCabec, {"C5_CLIENTE", AllTrim(header["Cliente"]), Nil})
         AAdd(aCabec, {"C5_LOJACLI", AllTrim(header["Loja"]), Nil})
         AAdd(aCabec, {"C5_CONDPAG", AllTrim(header["CondPag"]), Nil})
-        AAdd(aCabec, {"C5_TABELA" , AllTrim(header["TabelaPreco"]), Nil})
+	    AAdd(aCabec, {"C5_TABELA", PadL(AllTrim(header["TabelaPreco"]),3,"0")})
         AAdd(aCabec, {"C5_VEND1"  , AllTrim(header["Vendedor"]), Nil})
         AAdd(aCabec, {"C5_MENNOTA", header["Obs"], Nil})
 
@@ -286,7 +286,6 @@ Static Method GravaPedidos(aExec) Class ImportaPedidosCSV
         For m := 1 To Len(aItems)
 
             aItem := {}
-			AAdd(aItem, {"C6_LOCAL", "1", Nil})
             AAdd(aItem, {"C6_ITEM"   , StrZero(nItemNo,2), Nil})
             AAdd(aItem, {"C6_PRODUTO", aItems[m]["Produto"], Nil})
             AAdd(aItem, {"C6_QTDVEN" , GetDToVal(aItems[m]["Quantidade"]), Nil})

@@ -286,12 +286,13 @@ Static Method GravaPedidos(aExec) Class ImportaPedidosCSV
         For m := 1 To Len(aItems)
 
             aItem := {}
-
+			AAdd(aItem, {"C6_LOCAL", "1", Nil})
             AAdd(aItem, {"C6_ITEM"   , StrZero(nItemNo,2), Nil})
             AAdd(aItem, {"C6_PRODUTO", aItems[m]["Produto"], Nil})
-            AAdd(aItem, {"C6_QTDVEN" , aItems[m]["Quantidade"], Nil})
-            AAdd(aItem, {"C6_PRCVEN" , aItems[m]["PrecoUnit"], Nil})
-            AAdd(aItem, {"C6_DESCONT"  , aItems[m]["DescontoPerc"], Nil})
+            AAdd(aItem, {"C6_QTDVEN" , GetDToVal(aItems[m]["Quantidade"]), Nil})
+            AAdd(aItem, {"C6_PRCVEN" , GetDToVal(aItems[m]["PrecoUnit"]), Nil})
+			AAdd(aItem, {"C6_TES", BuscaTesPadrao(aItems[m]["Produto"]), Nil})
+            AAdd(aItem, {"C6_DESCONT"  , GetDToVal(aItems[m]["DescontoPerc"]), Nil})
 
             AAdd(aItens, aItem)
 
@@ -304,7 +305,6 @@ Static Method GravaPedidos(aExec) Class ImportaPedidosCSV
            ========================= */
 
         lMsErroAuto := .F.
-
         MSExecAuto({|a,b,c,d| MATA410(a,b,c,d)}, aCabec, aItens, 3, .F.)
 
         If lMsErroAuto
@@ -350,7 +350,7 @@ Static Method AgrupaItens(aItens) class ImportaPedidosCSV
 	Local aIndex := JsonObject():New()
 	Local i := 0
 	Local oPedido := Nil
-	Local cPed := ""
+	Local cPed := "" 
 
 	For i := 1 To Len(aItens)
 		cPed := aItens[i]["PedidoExterno"]
@@ -376,3 +376,16 @@ Static Method ValidaCliente(cCliente) class ImportaPedidosCSV
 	("SA1")->(DbSetOrder(1))
 	nTam := TamSX3("A1_COD")[1]
 Return SA1->(DbSeek(xFilial("SA1") + cCliente))
+
+Static Function BuscaTesPadrao(cProduto)
+	DbSelectArea("SB1")
+	DbSetOrder(1)
+	DbSeek(xFilial("SB1") + cProduto)
+
+If SB1->B1_TIPO == "SV"
+    cTes := "503"  
+Else
+    cTes := "501"  
+EndIf
+
+Return cTes

@@ -235,66 +235,93 @@ Static Method ValidaItensPedido(aItens, cPed) class ImportaPedidosCSV
 	Next
 Return aItensValidos
 
-Static Method GravaPedidos(aExec) class ImportaPedidosCSV
-	Local k := 0
-	Local m := 0
-	Local aDat := {}
-	Local aHeaderFields := {}
-	Local header := Nil
-	Local aItems := {}
-	Local it := Nil
-	Local nItemNo := 1
-	Local aItemFields := {}
-	Local cLog := ""
-	Local nNOPC := 3
+Static Method GravaPedidos(aExec) Class ImportaPedidosCSV
+    Local k        := 0
+    Local m        := 0
+    Local aCabec   := {}
+    Local aItens   := {}
+    Local aItem    := {}
+    Local header   := Nil
+    Local aItems   := {}
+    Local nItemNo  := 1
+    Local cPedido  := ""
 
-	If Len(aExec) == 0
-		ConOut("Nenhum pedido preparado para execução.")
-		Return .F.
-	EndIf
+    Private lMsErroAuto    := .F.
+    Private lAutoErrNoFile := .F.
 
-	For k := 1 To Len(aExec)
-		ConOut("Preparando criação do pedido externo: " + aExec[k]["pedido_externo"])
-		ConOut(" Itens válidos: " + Str(Len(aExec[k]["itens"])))
+    If Len(aExec) == 0
+        ConOut("Nenhum pedido preparado para execução.")
+        Return .F.
+    EndIf
 
-		aDat := {}
-		aHeaderFields := {}
-		header := aExec[k]["header"]
+    For k := 1 To Len(aExec)
 
-		AAdd(aHeaderFields, {"C5_FILIAL", IIf(Header["Filial"]==NIL, "01", header["Filial"]) })
-		AAdd(aHeaderFields, {"C5_EMISSAO", header["Emissao"]})
-		AAdd(aHeaderFields, {"C5_CLIENTE", header["Cliente"]})
-		AAdd(aHeaderFields, {"C5_LOJA", header["Loja"]})
-		AAdd(aHeaderFields, {"C5_CONDPAG", header["CondPag"]})
-		AAdd(aHeaderFields, {"C5_TABELA", header["TabelaPreco"]})
-		AAdd(aHeaderFields, {"C5_VENDEDOR", header["Vendedor"]})
-		AAdd(aHeaderFields, {"C5_OBS", header["Obs"]})
-		If header["Origem"] != Nil
-			AAdd(aHeaderFields, {"C5_ORIGEM", header["Origem"]})
-		EndIf
+        ConOut("======================================")
+        ConOut("Gerando pedido externo: " + aExec[k]["pedido_externo"])
 
-		AAdd(aDat, {"SC5", aHeaderFields})
+        header := aExec[k]["header"]
+        aItems := aExec[k]["itens"]
 
-		aItems := aExec[k]["itens"]
-		nItemNo := 1
-		For m := 1 To Len(aItems)
-			aItemFields := {}
-			it := aItems[m]
-			AAdd(aItemFields, {"C6_ITEM", PadL(Str(nItemNo),3,'0')})
-			AAdd(aItemFields, {"C6_PRODUTO", it["Produto"]})
-			AAdd(aItemFields, {"C6_QTD", it["Quantidade"]})
-			AAdd(aItemFields, {"C6_PRECO", it["PrecoUnit"]})
-			AAdd(aItemFields, {"C6_DESC_PERC", it["DescontoPerc"]})
-			AAdd(aDat, {"SC6", aItemFields})
-			nItemNo++
-		Next
+        aCabec := {}
+        aItens := {}
+        nItemNo := 1
 
-		nNOPC := 3
-		cLog := ""
-		MSEXECAUTO( {|x,y| cLog += y + CRLF }, aDat, nNOPC )
-		ConOut("Resultado MSEXECAUTO:\n" + cLog)
-	Next
+        /* =========================
+           MONTA CABECALHO (SC5)
+           ========================= */
+
+        AAdd(aCabec, {"C5_TIPO"   , "N", Nil})
+        AAdd(aCabec, {"C5_EMISSAO", Ctod(header["Emissao"]), Nil})
+        AAdd(aCabec, {"C5_CLIENTE", PadL(AllTrim(header["Cliente"]),6,"0"), Nil})
+        AAdd(aCabec, {"C5_LOJACLI", PadL(AllTrim(header["Loja"]),2,"0"), Nil})
+        AAdd(aCabec, {"C5_CONDPAG", PadL(AllTrim(header["CondPag"]),3,"0"), Nil})
+        AAdd(aCabec, {"C5_TABELA" , PadL(AllTrim(header["TabelaPreco"]),3,"0"), Nil})
+        AAdd(aCabec, {"C5_VEND1"  , PadL(AllTrim(header["Vendedor"]),6,"0"), Nil})
+        AAdd(aCabec, {"C5_MENNOTA", header["Obs"], Nil})
+
+        /* =========================
+           MONTA ITENS (SC6)
+           ========================= */
+
+        For m := 1 To Len(aItems)
+
+            aItem := {}
+
+            AAdd(aItem, {"C6_ITEM"   , StrZero(nItemNo,2), Nil})
+            AAdd(aItem, {"C6_PRODUTO", aItems[m]["Produto"], Nil})
+            AAdd(aItem, {"C6_QTDVEN" , aItems[m]["Quantidade"], Nil})
+            AAdd(aItem, {"C6_PRCVEN" , aItems[m]["PrecoUnit"], Nil})
+            AAdd(aItem, {"C6_DESCONT"  , aItems[m]["DescontoPerc"], Nil})
+
+            AAdd(aItens, aItem)
+
+            nItemNo++
+
+        Next
+
+        /* =========================
+           EXECUTA MATA410
+           ========================= */
+
+        lMsErroAuto := .F.
+
+        MSExecAuto({|a,b,c,d| MATA410(a,b,c,d)}, aCabec, aItens, 3, .F.)
+
+        If lMsErroAuto
+
+            ConOut("Erro ao gerar pedido: " + aExec[k]["pedido_externo"])
+            MostraErro()
+
+        Else
+
+            cPedido := SC5->C5_NUM
+            ConOut("Pedido gerado com sucesso: " + cPedido)
+
+        EndIf
+
+    Next
 Return .T.
+
 
 Static Method ValidaProduto(cProduto) class ImportaPedidosCSV
 	Local nTam := 0
